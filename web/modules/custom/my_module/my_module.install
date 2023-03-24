@@ -1,0 +1,51 @@
+<?php
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+
+/**
+ * Implements hook_install().
+ */
+function my_module_install() {
+  // Add the field storage for the "client_url" field.
+  $field_storage = FieldStorageConfig::loadByName('node', 'field_client_url');
+  // Check if the field storage for the "client_url" field exists, if not, create it.
+  if (!$field_storage) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_client_url',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'cardinality' => 1,
+      'settings' => [
+        'max_length' => 2048,
+        'is_ascii' => false,
+      ],
+      'module' => 'my_module',
+      'locked' => true,
+    ])->save();
+  }
+
+  // Get all node type IDs.
+  $type_ids = \Drupal::entityQuery('node_type')->execute();
+
+  // Add the "client_url" field to each node type.
+  foreach ($type_ids as $type_id) {
+    $node_type = \Drupal\node\Entity\NodeType::load($type_id);
+    if ($node_type) {
+      $fields = FieldStorageConfig::loadByName('node', 'field_client_url')->getBundles();
+      if (!isset($fields['field_client_url'])) {
+        $field = FieldConfig::create([
+          'field_name' => 'field_client_url',
+          'entity_type' => 'node',
+          'bundle' => $node_type->id(),
+          'label' => t('Client URL'),
+          'required' => false,
+          'settings' => [],
+          'default_value' => NULL,
+        ]);
+        $field->save();
+      }
+    }
+  }
+}
+

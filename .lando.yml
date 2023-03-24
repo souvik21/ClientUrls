@@ -1,0 +1,5 @@
+name: formatter
+recipe: drupal9
+php: '7.4'
+config:
+  webroot: web
